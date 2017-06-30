@@ -14,23 +14,21 @@ from plot_best_track import track_data
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 import itertools
 
-def plot_track(lats,lons,plt_labels):
+def plot_track(lats,lons,ft,fmw,plt_labels):
     lats = np.ma.masked_where(lats==0,lats)
     lons = np.ma.masked_where(lons==0,lons)
-    print lons
-    print lons.shape
     filename = './hagupit_ibtracs.nc'
     act_lats, act_lons = track_data(filename)
     Latitude=act_lats[0][:]; Longitude=act_lons[0][:]
-    print Latitude
+    fmw = np.ma.masked_where(fmw==0,fmw)
+    ft[:,1:] = np.ma.masked_where(ft[:,1:]==0,ft[:,1:])
 
+## Inlcude orography over the Philippines
     fname = '/nfs/a37/scjea/suite-runs/Hagupit/data/20141203T1200Z_Hagupit_4p4_L80_singv_2p1_new_pa000.pp'
     orog = iris.load_cube(fname)
-    print orog
     orogX = orog.coord('longitude').points
     orogY = orog.coord('latitude').points
     X,Y = np.meshgrid(orogX,orogY)
-
     orog.data = np.ma.masked_less(orog.data,10)
     orog.data = np.ma.masked_greater(orog.data,3000)
 
@@ -39,10 +37,10 @@ def plot_track(lats,lons,plt_labels):
     #orog_plt = ax.pcolormesh(X,Y,orog.data)
     #plt.colorbar(orog_plt)
     best_track = plt.plot(Longitude,Latitude,'k-',linewidth=2.5,label='IBTrACS Data')
-    ax.set_xlim([130,137])
-    ax.set_ylim([7.5, 12])
-    #ax.set_xlim([110,155])
-    #ax.set_ylim([-2.5, 17.5])
+#    ax.set_xlim([130,137])
+#    ax.set_ylim([7.5, 12])
+    ax.set_xlim([110,155])
+    ax.set_ylim([-2.5, 17.5])
     daybesttrack = plt.plot(Longitude[3:len(Longitude):4],Latitude[3:len(Latitude):4],'gv',markersize=10,label='Position at 0Z')
     ax.annotate('Time-lagged track ensemble for Typhoon Hagupit',xy=(0.5,0.99), size='xx-large', xycoords='axes fraction', horizontalalignment='center', verticalalignment='top')
     ax.annotate('5 day forecasts initialised 12 hrs apart', xy=(0.5,0.95), size='xx-large', xycoords='axes fraction', horizontalalignment='center', verticalalignment='top')
@@ -77,7 +75,7 @@ def plot_track(lats,lons,plt_labels):
 
     colors = ['b','g','r','c','m','y','chocolate','b','g','r','c','m','y']
     linestyles = ['-','-','-','-','-','-','-','--','--','--','--','--','--']
-
+## Standard plot ##
     for i in np.arange(lats.shape[0]):
         if i==3:
             plt.figure(1)
@@ -94,6 +92,12 @@ def plot_track(lats,lons,plt_labels):
             plt.figure(1)
             plt.plot(lons[i,:],lats[i,:],label=plt_labels[i],linestyle=linestyles[i],color=colors[i],linewidth=3)
             plt.plot(lons[i,1],lats[i,1],'ms',markersize=15)
+## Scatter plot ##
+#    for i in np.arange(lats.shape[0]):#
+#        plt.figure(1)
+#        new_lons, new_lats = highResPoints(lons[i][:],lats[i][:],factor=100)
+
+
     plt.legend(loc='lower left')
     plt.show()
     plt.close()
